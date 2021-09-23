@@ -1,0 +1,175 @@
+#!/bin/bash -e
+
+set -e
+
+# Source variables from config.conf file
+. config.conf
+
+
+##############################################################################
+############################      FUNCTIONS     ##############################
+##############################################################################
+
+function initialSetup {
+    NDK_PATH="$DOWNLOAD_DIR/$NDK_DIR_NAME"
+    TOOLCHAIN=${NDK_PATH}/toolchains/llvm/prebuilt/linux-x86_64
+    SDK_TOOLS_PATH="$DOWNLOAD_DIR/${SDK_DIR_NAME}"/tools
+    FFMPEG_SRC_PATH="$DOWNLOAD_DIR/${FFMPEG_DIR_NAME}/FFmpeg-n${FFMPEG_VERSION}"
+    FFMPEG_TMP_DIR="/tmp/ffmpeg"
+}
+
+function setupPathsAndExports {
+    LIB_PATH="${FFMPEG_BUILD_OUT_PATH}/libs"
+    LOG_PATH="${FFMPEG_BUILD_OUT_PATH}/logs"
+
+    export ANDROID_NDK_HOME=$NDK_PATH
+    export ANDROID_HOME=$DOWNLOAD_DIR/${SDK_DIR_NAME}
+
+    export PATH=${SDK_TOOLS_PATH}:$PATH
+}
+
+function clearBuildDirectory {
+    rm -rf "${FFMPEG_BUILD_OUT_PATH}"
+    mkdir -p "${LIB_PATH}"
+    mkdir -p "${LOG_PATH}"
+}
+
+function clearTmpAndInitDirectory {
+    rm -rf "${FFMPEG_TMP_DIR}"
+    mkdir -p "${FFMPEG_TMP_DIR}"
+    cd ${FFMPEG_SRC_PATH}
+    cp -r * ${FFMPEG_TMP_DIR}
+    cd ${FFMPEG_TMP_DIR}
+    mkdir -p "$BUILD_DIR"
+    mkdir -p "${LIB_PATH}/${arch}"
+    mkdir -p "${LOG_PATH}"
+}
+
+function finalizeArgs {
+    arch=$1
+    if [ "$arch" == "armeabi" ]
+    then
+        ARCH="arm"
+        CPU="armv7-a"
+        COMPILER_PREFIX="armv7a"
+        API=eabi${FFMPEG_TARGET_NDK_LEVEL}
+        CROSS_PREFIX=${TOOLCHAIN}/bin/arm-linux-androideabi-
+        $ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
+    elif [ "$arch" == "armeabi-v7a" ]
+    then
+        ARCH="arm"
+        CPU="armv7-a"
+        COMPILER_PREFIX="armv7a"
+        API=eabi${FFMPEG_TARGET_NDK_LEVEL}
+        CROSS_PREFIX=${TOOLCHAIN}/bin/arm-linux-androideabi-
+        $ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
+    elif [ "$arch" == "x86" ]
+    then
+        ARCH="x86"
+        CPU="i686"
+        COMPILER_PREFIX="i686"
+        API=${FFMPEG_TARGET_NDK_LEVEL}
+        CROSS_PREFIX=${TOOLCHAIN}/bin/i686-linux-android-
+        $ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
+    elif [ "$arch" == "x86_64" ]
+    then
+        ARCH="x86_64"
+        CPU="x86-64"
+        COMPILER_PREFIX="x86_64"
+        API=${FFMPEG_TARGET_NDK_LEVEL}
+        CROSS_PREFIX=${TOOLCHAIN}/bin/x86_64-linux-android-
+        $ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
+    elif [ "$arch" == "arm64-v8a" ]
+    then
+        ARCH="arm64"
+        CPU="armv8-a"
+        COMPILER_PREFIX="aarch64"
+        API=${FFMPEG_TARGET_NDK_LEVEL}
+        CROSS_PREFIX=${TOOLCHAIN}/bin/aarch64-linux-android-
+        $ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
+    else
+        echo "Unsupported target ABI: $arch"
+        exit 1
+    fi
+}
+
+function build_android {
+    CC=$TOOLCHAIN/bin/${COMPILER_PREFIX}-linux-android${API}-clang
+    CXX=$TOOLCHAIN/bin/${COMPILER_PREFIX}-linux-android${API}-clang++
+    SYSROOT=$TOOLCHAIN/sysroot
+    PREFIX=${LIB_PATH}/${arch}
+    OPTIMIZE_CFLAGS="-march=$CPU"
+
+    echo "Compiling FFmpeg for $CPU"
+
+    ./configure \
+        --prefix=$PREFIX \
+        --enable-hwaccels \
+        --enable-gpl \
+        --enable-small \
+        --disable-postproc \
+        --enable-shared \
+        --enable-jni \
+        --disable-mediacodec \
+        --disable-decoder=h264_mediacodec \
+        --disable-static \
+        --disable-doc \
+        --disable-ffmpeg \
+        --disable-ffplay \
+        --disable-ffprobe \
+        --disable-avdevice \
+        --disable-doc \
+        --disable-symver \
+        --cross-prefix=$CROSS_PREFIX \
+        --target-os=android \
+        --arch=$ARCH \
+        --cpu=$CPU \
+        --cc=$CC \
+        --cxx=$CXX \
+        --enable-cross-compile \
+        --sysroot=$SYSROOT \
+        --extra-cflags="-Os -fpic $OPTIMIZE_CFLAGS" \
+        --extra-ldflags="$ADDI_LDFLAGS" \
+        $ADDITIONAL_CONFIGURE_FLAG
+    
+    echo "Configure complete!"
+    make clean >> "${LOG_PATH}/${arch}.log" 2>&1
+    echo "Start building..."
+    make -j4 >> "${LOG_PATH}/${arch}.log" 2>&1
+    echo "Start installing..."
+    make install >> "${LOG_PATH}/${arch}.log" 2>&1
+    echo "The Compilation of FFmpeg for $CPU is completed"
+}
+
+
+##############################################################################
+############################        INIT          ############################
+##############################################################################
+
+# Initial variables setup
+initialSetup
+# Set final paths and exports
+setupPathsAndExports
+# Clear and recreate the build output directory
+clearBuildDirectory
+
+
+##############################################################################
+############################        MAIN          ############################
+##############################################################################
+
+for arch in "${TARGET_ARCHS[@]}"
+do
+    echo "Building FFmpeg for target arch $arch ..."
+    # Clear the tmp source directory
+    clearTmpAndInitDirectory
+
+    # Add final architecture dependent info
+    finalizeArgs $arch
+
+    build_android
+done
+
+echo "Finished building FFmpeg! Check output folder: ${FFMPEG_BUILD_OUT_PATH}"
+
+set +e

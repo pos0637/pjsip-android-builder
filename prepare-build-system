@@ -188,6 +188,22 @@ then
     ./openssl-build-target-archs
 fi
 
+if [ "$DOWNLOAD_FFMPEG" == "1" ]
+then
+    echo ""
+    echo "Downloading FFmpeg ${FFMPEG_VERSION} ..."
+    echo ""
+    cd $DOWNLOAD_DIR
+    curl -L -# -o ffmpeg.zip "$FFMPEG_DOWNLOAD_URL" 2>&1
+    rm -rf "${FFMPEG_DIR_NAME}"
+    echo "FFmpeg downloaded!"
+    echo "Extracting FFmpeg ..."
+    unzip ffmpeg.zip -d ${FFMPEG_DIR_NAME} && rm -rf ffmpeg.zip
+
+    cd ${BASEDIR}
+    ./ffmpeg-build-target-archs || true
+fi
+
 if [ "$DOWNLOAD_OPENH264" == "1" ]
 then
     echo ""
