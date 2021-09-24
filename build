@@ -36,8 +36,6 @@ function setConfigSite {
     echo "#define PJMEDIA_HAS_G7221_CODEC 1" >> "$CONFIG_SITE_PATH"
     echo "#include <pj/config_site_sample.h>" >> "$CONFIG_SITE_PATH"
     echo "#define PJMEDIA_HAS_VIDEO 1" >> "$CONFIG_SITE_PATH"
-    echo "#define PJMEDIA_HAS_FFMPEG 1" >> "$CONFIG_SITE_PATH"
-    echo "#undef PJMEDIA_USE_OLD_FFMPEG" >> "$CONFIG_SITE_PATH"
     echo "#define PJMEDIA_AUDIO_DEV_HAS_ANDROID_JNI 0" >> "$CONFIG_SITE_PATH"
     echo "#define PJMEDIA_AUDIO_DEV_HAS_OPENSL 1" >> "$CONFIG_SITE_PATH"
     echo "#define PJSIP_AUTH_AUTO_SEND_NEXT 0" >> "$CONFIG_SITE_PATH"
@@ -52,6 +50,17 @@ function setConfigSite {
     if [ "${DOWNLOAD_BCG729}" == "1" ]
     then
         echo "#define PJMEDIA_HAS_BCG729 1" >> "$CONFIG_SITE_PATH"
+    fi
+
+    if [ "${DOWNLOAD_FFMPEG}" == "1" ]
+    then
+        echo "#define PJMEDIA_HAS_FFMPEG 1" >> "$CONFIG_SITE_PATH"
+        echo "#undef PJMEDIA_USE_OLD_FFMPEG" >> "$CONFIG_SITE_PATH"
+    fi
+
+    if [ "${DOWNLOAD_OPENH264}" == "1" ]
+    then
+        echo "#define PJMEDIA_HAS_OPENH264_CODEC 1" >> "$CONFIG_SITE_PATH"
     fi
 }
 
