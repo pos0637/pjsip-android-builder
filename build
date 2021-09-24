@@ -36,6 +36,8 @@ function setConfigSite {
     echo "#define PJMEDIA_HAS_G7221_CODEC 1" >> "$CONFIG_SITE_PATH"
     echo "#include <pj/config_site_sample.h>" >> "$CONFIG_SITE_PATH"
     echo "#define PJMEDIA_HAS_VIDEO 1" >> "$CONFIG_SITE_PATH"
+    echo "#define PJMEDIA_HAS_FFMPEG 1" >> "$CONFIG_SITE_PATH"
+    echo "#undef PJMEDIA_USE_OLD_FFMPEG" >> "$CONFIG_SITE_PATH"
     echo "#define PJMEDIA_AUDIO_DEV_HAS_ANDROID_JNI 0" >> "$CONFIG_SITE_PATH"
     echo "#define PJMEDIA_AUDIO_DEV_HAS_OPENSL 1" >> "$CONFIG_SITE_PATH"
     echo "#define PJSIP_AUTH_AUTO_SEND_NEXT 0" >> "$CONFIG_SITE_PATH"
@@ -64,6 +66,7 @@ function buildPjSip {
 
     args=("--use-ndk-cflags"
         "--with-ssl=${OPENSSL_BUILD_OUT_PATH}/libs/${arch}"
+        "--with-ffmpeg=${FFMPEG_BUILD_OUT_PATH}/libs/${arch}"
         "--with-openh264=${OPENH264_BUILD_OUT_PATH}/libs/${arch}"
         "--with-opus=${OPUS_BUILD_OUT_PATH}/libs/${arch}"
         "--with-bcg729=${BCG729_BUILD_OUT_PATH}/libs/${arch}")
@@ -84,6 +87,11 @@ function buildPjSip {
     # using /*/* we assume there is only one directory (whatever its name is)
     # and retrieve all its content (.so libs)
     mv "${PJSUA_GENERATED_SO_PATH}"/*/* "${FINAL_BUILD_LIB}/${arch}"
+
+    if [ -f ${FFMPEG_BUILD_OUT_PATH}/libs/${arch}/lib/libavformat.so ]; then
+        echo "Copying FFmpeg .so library to final build directory ..."
+        cp ${FFMPEG_BUILD_OUT_PATH}/libs/${arch}/lib/*.so ${FINAL_BUILD_LIB}/${arch}/
+    fi
 
     if [ -f ${OPENH264_BUILD_OUT_PATH}/libs/${arch}/lib/libopenh264.so ]; then
         echo "Copying OpenH264 .so library to final build directory ..."
