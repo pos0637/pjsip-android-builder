@@ -54,7 +54,7 @@ function finalizeArgs {
         COMPILER_PREFIX="armv7a"
         API=eabi${FFMPEG_TARGET_NDK_LEVEL}
         CROSS_PREFIX=${TOOLCHAIN}/bin/arm-linux-androideabi-
-        $ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
+        ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
     elif [ "$arch" == "armeabi-v7a" ]
     then
         ARCH="arm"
@@ -62,7 +62,7 @@ function finalizeArgs {
         COMPILER_PREFIX="armv7a"
         API=eabi${FFMPEG_TARGET_NDK_LEVEL}
         CROSS_PREFIX=${TOOLCHAIN}/bin/arm-linux-androideabi-
-        $ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
+        ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
     elif [ "$arch" == "x86" ]
     then
         ARCH="x86"
@@ -70,7 +70,7 @@ function finalizeArgs {
         COMPILER_PREFIX="i686"
         API=${FFMPEG_TARGET_NDK_LEVEL}
         CROSS_PREFIX=${TOOLCHAIN}/bin/i686-linux-android-
-        $ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
+        ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
     elif [ "$arch" == "x86_64" ]
     then
         ARCH="x86_64"
@@ -78,7 +78,7 @@ function finalizeArgs {
         COMPILER_PREFIX="x86_64"
         API=${FFMPEG_TARGET_NDK_LEVEL}
         CROSS_PREFIX=${TOOLCHAIN}/bin/x86_64-linux-android-
-        $ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
+        ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
     elif [ "$arch" == "arm64-v8a" ]
     then
         ARCH="arm64"
@@ -86,7 +86,7 @@ function finalizeArgs {
         COMPILER_PREFIX="aarch64"
         API=${FFMPEG_TARGET_NDK_LEVEL}
         CROSS_PREFIX=${TOOLCHAIN}/bin/aarch64-linux-android-
-        $ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
+        ADDITIONAL_CONFIGURE_FLAG="--enable-neon"
     else
         echo "Unsupported target ABI: $arch"
         exit 1
