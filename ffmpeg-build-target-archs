@@ -81,7 +81,7 @@ function finalizeArgs {
         FFMPEG_ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
     elif [ "$arch" == "arm64-v8a" ]
     then
-        FFMPEG_ARCH="arm64"
+        FFMPEG_ARCH="aarch64"
         FFMPEG_CPU="armv8-a"
         FFMPEG_COMPILER_PREFIX="aarch64"
         FFMPEG_API=${FFMPEG_TARGET_NDK_LEVEL}
@@ -104,31 +104,28 @@ function build_android {
 
     ./configure \
         --prefix=$FFMPEG_PREFIX \
-        --enable-hwaccels \
         --enable-gpl \
-        --enable-small \
-        --disable-postproc \
-        --enable-shared \
-        --enable-jni \
-        --disable-mediacodec \
-        --disable-decoder=h264_mediacodec \
-        --disable-static \
+        --disable-shared \
+        --enable-static \
+        --disable-small \
+        --disable-programs \
         --disable-doc \
-        --disable-ffmpeg \
-        --disable-ffplay \
-        --disable-ffprobe \
         --disable-avdevice \
-        --disable-doc \
+        --disable-swresample \
+        --disable-postproc \
+        --disable-decoder=h264_mediacodec \
+        --enable-hwaccels \
+        --disable-mediacodec \
         --disable-symver \
+        --enable-jni \
         --cross-prefix=$FFMPEG_CROSS_PREFIX \
         --target-os=android \
         --arch=$FFMPEG_ARCH \
-        --cpu=$FFMPEG_CPU \
         --cc=$FFMPEG_CC \
         --cxx=$FFMPEG_CXX \
         --enable-cross-compile \
         --sysroot=$FFMPEG_SYSROOT \
-        --extra-cflags="-Os -fpic $FFMPEG_OPTIMIZE_CFLAGS" \
+        --extra-cflags="-Os -fpic" \
         --extra-ldflags="$ADDI_LDFLAGS" \
         $FFMPEG_ADDITIONAL_CONFIGURE_FLAG
     
