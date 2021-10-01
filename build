@@ -75,7 +75,6 @@ function buildPjSip {
 
     args=("--use-ndk-cflags"
         "--with-ssl=${OPENSSL_BUILD_OUT_PATH}/libs/${arch}"
-        "--with-ffmpeg=${FFMPEG_BUILD_OUT_PATH}/libs/${arch}"
         "--with-openh264=${OPENH264_BUILD_OUT_PATH}/libs/${arch}"
         "--with-opus=${OPUS_BUILD_OUT_PATH}/libs/${arch}"
         "--with-bcg729=${BCG729_BUILD_OUT_PATH}/libs/${arch}")
